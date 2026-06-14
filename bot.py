@@ -16,7 +16,7 @@ VERIFY_TOKEN = "myloveaitoken2026"
 genai.configure(api_key=GEMINI_API_KEY)
 
 # Gemini Model
-model = genai.GenerativeModel("gemini-1.5-flash")
+model = genai.GenerativeModel("gemini-2.0-flash")
 
 
 def get_gemini_response(user_text):
