@@ -19,7 +19,7 @@ VERIFY_TOKEN = "myloveaitoken2026"
 # Groq Client
 client = Groq(api_key=GROQ_API_KEY)
 genai.configure(api_key=GEMINI_API_KEY)
-gemini_model = genai.GenerativeModel("gemini-1.5-flash")
+gemini_model = genai.GenerativeModel("gemini-2.5-flash")
 
 
 def get_ai_response(user_text):
