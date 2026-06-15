@@ -208,7 +208,19 @@ def webhook():
 
     try:
 
-        
+        message_id = message["id"]
+
+        global processed_messages
+
+        try:
+            processed_messages
+        except:
+            processed_messages = set()
+
+        if message_id in processed_messages:
+           return "ok", 200
+
+        processed_messages.add(message_id)
 
         sender = message["from"]
         msg_type = message["type"]
