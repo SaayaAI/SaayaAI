@@ -172,8 +172,8 @@ def analyze_image(media_id):
 
     except Exception as e:
 
-        print("Image Error:", str(e))
-
+        print("FULL IMAGE ERROR:", repr(e))
+        
         return "Photo analyse nahi ho payi."
 
 @app.route("/", methods=["GET"])
