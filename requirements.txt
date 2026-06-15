@@ -3,3 +3,4 @@ requests
 gunicorn
 groq
 google-generativeai
+Pillow
