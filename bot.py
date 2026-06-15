@@ -1,32 +1,40 @@
 import os
 import requests
 from flask import Flask, request
-import google.generativeai as genai
+from groq import Groq
 
 app = Flask(__name__)
 
-# Environment Variables
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 WHATSAPP_TOKEN = os.environ.get("WHATSAPP_TOKEN")
 PHONE_NUMBER_ID = os.environ.get("PHONE_NUMBER_ID")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
 VERIFY_TOKEN = "myloveaitoken2026"
 
-# Gemini Setup
-genai.configure(api_key=GEMINI_API_KEY)
-
-# Gemini Model
-model = genai.GenerativeModel("gemini-2.0-flash")
+client = Groq(api_key=GROQ_API_KEY)
 
 
-def get_gemini_response(user_text):
+def get_ai_response(user_text):
     try:
-        response = model.generate_content(user_text)
-        return response.text
+        chat_completion = client.chat.completions.create(
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Tum Saaya AI ho. Hindi aur English dono me friendly jawab do."
+                },
+                {
+                    "role": "user",
+                    "content": user_text
+                }
+            ],
+            model="llama3-8b-8192"
+        )
+
+        return chat_completion.choices[0].message.content
 
     except Exception as e:
-        print("Gemini Error:", str(e))
-        return "Sorry, abhi AI response nahi de pa raha."
+        print("Groq Error:", str(e))
+        return "Sorry, AI abhi busy hai. Thodi der baad try karo."
 
 
 def send_whatsapp_message(to, body):
@@ -38,87 +46,65 @@ def send_whatsapp_message(to, body):
         "Content-Type": "application/json"
     }
 
-    data = {
+    payload = {
         "messaging_product": "whatsapp",
         "to": to,
+        "type": "text",
         "text": {
             "body": body
         }
     }
 
-    response = requests.post(
-        url,
-        headers=headers,
-        json=data
-    )
+    response = requests.post(url, headers=headers, json=payload)
 
-    print("WhatsApp API Status:", response.status_code)
-    print("WhatsApp API Response:", response.text)
+    print(response.status_code)
+    print(response.text)
 
 
-@app.route("/webhook", methods=["GET", "POST"])
+@app.route("/", methods=["GET"])
+def home():
+    return "Saaya AI Running"
+
+
+@app.route("/webhook", methods=["GET"])
+def verify():
+
+    mode = request.args.get("hub.mode")
+    token = request.args.get("hub.verify_token")
+    challenge = request.args.get("hub.challenge")
+
+    if mode and token:
+
+        if mode == "subscribe" and token == VERIFY_TOKEN:
+            return challenge, 200
+
+    return "Verification failed", 403
+
+
+@app.route("/webhook", methods=["POST"])
 def webhook():
 
-    # Verification
-    if request.method == "GET":
+    data = request.get_json()
 
-        token = request.args.get("hub.verify_token")
+    try:
+        message = data["entry"][0]["changes"][0]["value"]["messages"][0]
 
-        if token == VERIFY_TOKEN:
-            return request.args.get("hub.challenge")
+        sender = message["from"]
+        user_text = message["text"]["body"]
 
-        return "Invalid Verify Token", 403
+        print("User:", user_text)
 
-    # Incoming Message
-    if request.method == "POST":
+        ai_reply = get_ai_response(user_text)
 
-        data = request.json
+        print("AI:", ai_reply)
 
-        print("========== WEBHOOK HIT ==========")
-        print(data)
+        send_whatsapp_message(sender, ai_reply)
 
-        try:
+    except Exception as e:
+        print("Webhook Error:", str(e))
 
-            entry = data["entry"][0]
-            changes = entry["changes"][0]
-            value = changes["value"]
-
-            if "messages" in value:
-
-                message = value["messages"][0]
-
-                sender = message["from"]
-
-                if message["type"] == "text":
-
-                    user_text = message["text"]["body"]
-
-                    print("User Message:", user_text)
-
-                    # Gemini Response
-                    reply = get_gemini_response(user_text)
-
-                    print("AI Reply:", reply)
-
-                    send_whatsapp_message(sender, reply)
-
-        except Exception as e:
-
-            print("ERROR:", str(e))
-
-        return "OK", 200
-
-
-@app.route("/")
-def home():
-    return "Saaya AI Running Successfully"
+    return "ok", 200
 
 
 if __name__ == "__main__":
-
-    port = int(os.environ.get("PORT", 10000))
-
-    app.run(
-        host="0.0.0.0",
-        port=port
-    )
+    app.run(host="0.0.0.0", port=10000)
