@@ -1,5 +1,6 @@
 import os
 import requests
+import google.generativeai as genai
 from flask import Flask, request
 from groq import Groq
 
@@ -9,11 +10,14 @@ app = Flask(__name__)
 WHATSAPP_TOKEN = os.environ.get("WHATSAPP_TOKEN")
 PHONE_NUMBER_ID = os.environ.get("PHONE_NUMBER_ID")
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
 VERIFY_TOKEN = "myloveaitoken2026"
 
 # Groq Client
 client = Groq(api_key=GROQ_API_KEY)
+genai.configure(api_key=GEMINI_API_KEY)
+gemini_model = genai.GenerativeModel("gemini-1.5-flash")
 
 
 def get_ai_response(user_text):
