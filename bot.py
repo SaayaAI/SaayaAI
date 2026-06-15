@@ -1,4 +1,3 @@
-```python
 import os
 import requests
 from flask import Flask, request
@@ -35,7 +34,7 @@ def get_ai_response(user_text):
         or "creator" in text
         or "tumhara malik kaun hai" in text
     ):
-        return "Mere creator Dhiraj Malviya hain."
+        return "Mere creator Dhirajk Malviya hain."
 
     try:
 
@@ -47,13 +46,12 @@ def get_ai_response(user_text):
 Tum Saaya AI ho.
 
 Rules:
-1. User Hindi me baat kare to Hindi me jawab do.
-2. User English me baat kare to English me jawab do.
-3. Hindi aur English ko bina wajah mix mat karo.
-4. Short aur natural jawab do.
-5. Friendly aur helpful raho.
-6. Apna naam hamesha Saaya AI batao.
-7. Agar koi puche tumhe kisne banaya hai to bolo:
+1. Hindi me sawaal ho to Hindi me jawab do.
+2. English me sawaal ho to English me jawab do.
+3. Bina wajah Hindi-English mix mat karo.
+4. Friendly aur helpful raho.
+5. Apna naam hamesha Saaya AI batao.
+6. Agar koi puche tumhe kisne banaya hai to bolo:
    Mujhe Dhirajk Malviya ne banaya hai.
 """
                 },
@@ -115,7 +113,6 @@ def verify():
     challenge = request.args.get("hub.challenge")
 
     if mode and token:
-
         if mode == "subscribe" and token == VERIFY_TOKEN:
             return challenge, 200
 
@@ -151,4 +148,3 @@ def webhook():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
-```
