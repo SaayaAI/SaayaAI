@@ -1,3 +1,4 @@
+```python
 import os
 import requests
 from flask import Flask, request
@@ -5,30 +6,65 @@ from groq import Groq
 
 app = Flask(__name__)
 
+# Environment Variables
 WHATSAPP_TOKEN = os.environ.get("WHATSAPP_TOKEN")
 PHONE_NUMBER_ID = os.environ.get("PHONE_NUMBER_ID")
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
 VERIFY_TOKEN = "myloveaitoken2026"
 
+# Groq Client
 client = Groq(api_key=GROQ_API_KEY)
 
 
 def get_ai_response(user_text):
+
+    text = user_text.lower()
+
+    # Fixed Replies
+    if (
+        "kisne banaya" in text
+        or "who made you" in text
+        or "who created you" in text
+        or "tumhe kisne banaya" in text
+    ):
+        return "Mujhe Dhirajk Malviya ne banaya hai."
+
+    if (
+        "owner" in text
+        or "creator" in text
+        or "tumhara malik kaun hai" in text
+    ):
+        return "Mere creator Dhiraj Malviya hain."
+
     try:
+
         chat_completion = client.chat.completions.create(
             messages=[
                 {
                     "role": "system",
-                    "content": "Tum Saaya AI ho. Hindi aur English dono me friendly jawab do."
+                    "content": """
+Tum Saaya AI ho.
+
+Rules:
+1. User Hindi me baat kare to Hindi me jawab do.
+2. User English me baat kare to English me jawab do.
+3. Hindi aur English ko bina wajah mix mat karo.
+4. Short aur natural jawab do.
+5. Friendly aur helpful raho.
+6. Apna naam hamesha Saaya AI batao.
+7. Agar koi puche tumhe kisne banaya hai to bolo:
+   Mujhe Dhirajk Malviya ne banaya hai.
+"""
                 },
                 {
                     "role": "user",
                     "content": user_text
                 }
             ],
-            model="llama-3.3-70b-versatile"
-        
+            model="llama-3.3-70b-versatile",
+            temperature=0.7,
+            max_tokens=500
         )
 
         return chat_completion.choices[0].message.content
@@ -56,15 +92,19 @@ def send_whatsapp_message(to, body):
         }
     }
 
-    response = requests.post(url, headers=headers, json=payload)
+    response = requests.post(
+        url,
+        headers=headers,
+        json=payload
+    )
 
-    print(response.status_code)
+    print("WhatsApp Status:", response.status_code)
     print(response.text)
 
 
 @app.route("/", methods=["GET"])
 def home():
-    return "Saaya AI Running"
+    return "Saaya AI Running Successfully"
 
 
 @app.route("/webhook", methods=["GET"])
@@ -88,6 +128,7 @@ def webhook():
     data = request.get_json()
 
     try:
+
         message = data["entry"][0]["changes"][0]["value"]["messages"][0]
 
         sender = message["from"]
@@ -108,4 +149,6 @@ def webhook():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000)
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
+```
