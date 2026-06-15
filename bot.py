@@ -199,10 +199,16 @@ def verify():
 def webhook():
 
     data = request.get_json()
+    value = data["entry"][0]["changes"][0]["value"]
+
+    if "messages" not in value:
+        return "ok", 200
+
+    message = value["messages"][0]
 
     try:
 
-        message = data["entry"][0]["changes"][0]["value"]["messages"][0]
+        
 
         sender = message["from"]
         msg_type = message["type"]
