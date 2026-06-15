@@ -154,22 +154,35 @@ def webhook():
         message = data["entry"][0]["changes"][0]["value"]["messages"][0]
 
         sender = message["from"]
-        user_text = message["text"]["body"]
+        msg_type = message["type"]
 
-        print("User:", user_text)
+        if msg_type == "text":
 
-        ai_reply = get_ai_response(user_text)
+            user_text = message["text"]["body"]
 
-        print("AI:", ai_reply)
+            print("User:", user_text)
 
-        send_whatsapp_message(sender, ai_reply)
+            ai_reply = get_ai_response(user_text)
+
+            print("AI:", ai_reply)
+
+            send_whatsapp_message(sender, ai_reply)
+
+        elif msg_type == "image":
+
+            send_whatsapp_message(
+                sender,
+                "📷 Photo receive ho gayi hai. Image analysis feature jald aa raha hai."
+            )
+
+        else:
+
+            send_whatsapp_message(
+                sender,
+                f"⚠️ {msg_type} abhi supported nahi hai."
+            )
 
     except Exception as e:
         print("Webhook Error:", str(e))
 
     return "ok", 200
-
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
