@@ -3,6 +3,8 @@ import requests
 import google.generativeai as genai
 from flask import Flask, request
 from groq import Groq
+from PIL import Image
+from io import BytesIO
 
 app = Flask(__name__)
 
@@ -124,6 +126,55 @@ def send_whatsapp_message(to, body):
     print("WhatsApp Status:", response.status_code)
     print(response.text)
 
+def get_media_url(media_id):
+
+    url = f"https://graph.facebook.com/v25.0/{media_id}"
+
+    headers = {
+        "Authorization": f"Bearer {WHATSAPP_TOKEN}"
+    }
+
+    response = requests.get(
+        url,
+        headers=headers
+    )
+
+    data = response.json()
+
+    return data.get("url")
+
+
+def analyze_image(media_id):
+
+    try:
+
+        image_url = get_media_url(media_id)
+
+        headers = {
+            "Authorization": f"Bearer {WHATSAPP_TOKEN}"
+        }
+
+        image_response = requests.get(
+            image_url,
+            headers=headers
+        )
+
+        image = Image.open(
+            BytesIO(image_response.content)
+        )
+
+        result = gemini_model.generate_content([
+            "Is image ko Hindi me detail me explain karo.",
+            image
+        ])
+
+        return result.text
+
+    except Exception as e:
+
+        print("Image Error:", str(e))
+
+        return "Photo analyse nahi ho payi."
 
 @app.route("/", methods=["GET"])
 def home():
@@ -170,10 +221,19 @@ def webhook():
 
         elif msg_type == "image":
 
+            media_id = message["image"]["id"]
+
             send_whatsapp_message(
-                sender,
-                "📷 Photo receive ho gayi hai. Image analysis feature jald aa raha hai."
+                 sender,
+                 "📷 Photo mil gayi. Analyse kar raha hu..."
             )
+
+            result = analyze_image(media_id)
+
+            send_whatsapp_message(
+                 sender,
+                result[:4000]
+    )
 
         else:
 
