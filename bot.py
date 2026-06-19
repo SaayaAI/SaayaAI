@@ -21,10 +21,20 @@ client = Groq(api_key=GROQ_API_KEY)
 genai.configure(api_key=GEMINI_API_KEY)
 gemini_model = genai.GenerativeModel("gemini-2.5-flash")
 
+conversation_history = {}
 
-def get_ai_response(user_text):
+
+def get_ai_response(user_text, sender):
 
     text = user_text.lower()
+    if sender not in conversation_history:
+     conversation_history[sender] = []
+
+    conversation_history[sender].append(
+    {"role": "user", "content": user_text}
+    )
+
+    history = conversation_history[sender][-10:]
 
     # Fixed Replies
     if (
@@ -64,7 +74,7 @@ Rules:
 4. Agar user puche:
    Tumhe kisne banaya?
    Founder kaun hai?
-   Owner kaun hai?
+   wner kaun hai?
 
    Tab jawab do:
    "Mujhe Dhiraj Malviya ne develop aur launch kiya hai."
@@ -80,8 +90,9 @@ Rules:
 9. Har answer me apna introduction repeat mat karo.
 
 10. Short aur useful jawab dene ki koshish karo.
-""" 
+"""
                 },
+                *history,
                 {
                     "role": "user",
                     "content": user_text
@@ -173,7 +184,7 @@ def analyze_image(media_id):
     except Exception as e:
 
         print("FULL IMAGE ERROR:", repr(e))
-        
+
         return "Photo analyse nahi ho payi."
 
 @app.route("/", methods=["GET"])
@@ -231,7 +242,7 @@ def webhook():
 
             print("User:", user_text)
 
-            ai_reply = get_ai_response(user_text)
+            ai_reply = get_ai_response(user_text, sender)
 
             print("AI:", ai_reply)
 
