@@ -5,6 +5,7 @@ from flask import Flask, request
 from groq import Groq
 from PIL import Image
 from io import BytesIO
+import json
 
 app = Flask(__name__)
 
@@ -22,10 +23,25 @@ genai.configure(api_key=GEMINI_API_KEY)
 gemini_model = genai.GenerativeModel("gemini-2.5-flash")
 
 conversation_history = {}
+MEMORY_FILE = "memory.json"
+
+def load_memory():
+    try:
+        with open(MEMORY_FILE, "r") as f:
+            return json.load(f)
+    except:
+        return {}
+
+def save_memory(memory):
+    with open(MEMORY_FILE, "w") as f:
+        json.dump(memory, f, indent=4)
 
 
 def get_ai_response(user_text, sender):
+    memory = load_memory()
 
+    if sender not in memory:
+        memory[sender] = {}
     text = user_text.lower()
     if sender not in conversation_history:
      conversation_history[sender] = []
@@ -33,7 +49,27 @@ def get_ai_response(user_text, sender):
     conversation_history[sender].append(
     {"role": "user", "content": user_text}
     )
+    if "mera naam" in text:
+        try:
+            name = (
+                text.replace("mera naam", "")
+                .replace("hai", "")
+                .strip()
+            )
 
+            if len(name) > 1:
+                memory[sender]["name"] = name.title()
+                save_memory(memory)
+
+                return f"Thik hai, main yaad rakhunga ki aapka naam {name.title()} hai."
+        except:
+            pass
+
+    if "mera naam kya hai" in text:
+        if "name" in memory[sender]:
+            return f"Aapka naam {memory[sender]['name']} hai."
+        else:
+            return "Aapne abhi tak mujhe apna naam nahi bataya hai."
     history = conversation_history[sender][-10:]
 
     # Fixed Replies
