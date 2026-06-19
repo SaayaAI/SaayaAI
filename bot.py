@@ -380,10 +380,8 @@ def webhook():
         
         else:
 
-            send_whatsapp_message(
-                sender,
-                f"⚠️ {msg_type} abhi supported nahi hai."
-            )
+            print(f"Unsupported type: {msg_type}")
+            
     except Exception as e:
         print("Webhook Error:", str(e))
 
