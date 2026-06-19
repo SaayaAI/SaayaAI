@@ -211,9 +211,37 @@ def analyze_image(media_id):
         )
 
         result = gemini_model.generate_content([
-            "Is image ko Hindi me detail me explain karo.",
-            image
-        ])
+    """
+    Tum ek intelligent AI assistant ho.
+
+    User ne jo image bheji hai usko analyse karo aur user ke question ka direct jawab do.
+
+    Rules:
+
+    1. User jis language me sawal puche usi language me jawab do.
+    2. Sirf image ka description mat do, user ke question ko samjho aur uska answer do.
+    3. User image ke baare me kuch bhi puch sakta hai:
+       - Ye kya hai?
+       - Is photo me kya dikh raha hai?
+       - Ye photo kis software se bani hogi?
+       - Ye design kis type ka hai?
+       - Is photo ka purpose kya hai?
+       - Is image me kya samjhaya gaya hai?
+       - Is photo ki quality kaisi hai?
+       - Isme kya galat ya sahi hai?
+       - Is photo ka summary do.
+       - Is photo se kya information milti hai?
+       - Is photo ka analysis karo.
+
+    4. Agar image se exact information pata na chale to guess ko fact ki tarah mat batao.
+       "Mujhe exact pata nahi hai, lekin..." jaisa jawab do.
+
+    5. User ko short, clear aur useful answer do.
+
+    6. Agar user image ke baare me specific question puche to usi question par focus karo.
+    """,
+    image
+])
 
         return result.text
 
