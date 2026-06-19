@@ -6,6 +6,7 @@ from groq import Groq
 from PIL import Image
 from io import BytesIO
 import json
+from PyPDF2 import PdfReader
 
 app = Flask(__name__)
 
@@ -190,6 +191,20 @@ def get_media_url(media_id):
 
     return data.get("url")
 
+def download_media(media_id):
+
+    url = get_media_url(media_id)
+
+    headers = {
+        "Authorization": f"Bearer {WHATSAPP_TOKEN}"
+    }
+
+    response = requests.get(
+        url,
+        headers=headers
+    )
+
+    return response.content
 
 def analyze_image(media_id):
 
@@ -250,6 +265,26 @@ def analyze_image(media_id):
         print("FULL IMAGE ERROR:", repr(e))
 
         return "Photo analyse nahi ho payi."
+def analyze_pdf(pdf_file):
+    try:
+        reader = PdfReader(pdf_file)
+
+        text = ""
+
+        for page in reader.pages:
+            page_text = page.extract_text()
+            if page_text:
+                text += page_text + "\n"
+
+        result = gemini_model.generate_content(
+            f"Is PDF document ko analyse karo aur user ke liye summary batao:\n\n{text[:10000]}"
+        )
+
+        return result.text
+
+    except Exception as e:
+        print("PDF ERROR:", repr(e))
+        return "PDF analyse nahi ho payi."
 
 @app.route("/", methods=["GET"])
 def home():
@@ -317,25 +352,39 @@ def webhook():
             media_id = message["image"]["id"]
 
             send_whatsapp_message(
-                 sender,
-                 "📷 Photo mil gayi. Analyse kar raha hu..."
+                sender,
+                "📷 Photo mil gayi. Analyse kar raha hu..."
             )
 
             result = analyze_image(media_id)
 
             send_whatsapp_message(
-                 sender,
+                sender,
                 result[:4000]
-    )
+            )
+        elif msg_type == "document":
 
+            media_id = message["document"]["id"]
+
+            send_whatsapp_message(
+                sender,
+                "📄 Document mil gaya. Analyse kar raha hu..."
+            )
+
+            pdf_file = BytesIO(download_media(media_id))
+            result = analyze_pdf(pdf_file)
+            send_whatsapp_message(
+                sender,
+                result[:4000]
+            )
+        
         else:
 
             send_whatsapp_message(
                 sender,
                 f"⚠️ {msg_type} abhi supported nahi hai."
             )
-
     except Exception as e:
         print("Webhook Error:", str(e))
 
-    return "ok", 200
+        return "ok", 200
