@@ -13,15 +13,8 @@ app = Flask(__name__)
 # Environment Variables
 WHATSAPP_TOKEN = os.environ.get("WHATSAPP_TOKEN")
 PHONE_NUMBER_ID = os.environ.get("PHONE_NUMBER_ID")
-
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
-
-NEWS_API_KEY = os.environ.get("NEWS_API_KEY")
-OPENWEATHER_API_KEY = os.environ.get("OPENWEATHER_API_KEY")
-COINGECKO_API_KEY = os.environ.get("COINGECKO_API_KEY")
-EXCHANGE_API_KEY = os.environ.get("EXCHANGE_API_KEY")
-GOLD_API_KEY = os.environ.get("GOLD_API_KEY")
 
 VERIFY_TOKEN = "myloveaitoken2026"
 
@@ -31,9 +24,6 @@ genai.configure(api_key=GEMINI_API_KEY)
 gemini_model = genai.GenerativeModel("gemini-2.5-flash")
 
 conversation_history = {}
-
-processed_messages = set()
-
 MEMORY_FILE = "memory.json"
 
 def load_memory():
@@ -47,88 +37,48 @@ def save_memory(memory):
     with open(MEMORY_FILE, "w") as f:
         json.dump(memory, f, indent=4)
 
-def get_gold_price():
-    return "🥇 Gold API Connected Successfully"
 
-def get_exchange_rate():
-    return "💱 Exchange API Connected Successfully"
-
-def get_latest_news():
-    try:
-        url = f"https://newsapi.org/v2/top-headlines?country=in&apiKey={NEWS_API_KEY}"
-        data = requests.get(url).json()
-
-        news = "📰 Top News:\n\n"
-        for article in data["articles"][:5]:
-            news += f"• {article['title']}\n"
-
-        return news
-    except Exception as e:
-        return f"News Error: {e}"
-
-
-def get_weather(city="Ahmedabad"):
-    try:
-        url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={OPENWEATHER_API_KEY}&units=metric"
-        data = requests.get(url).json()
-
-        return f"🌤️ {city}\n🌡️ {data['main']['temp']}°C\n☁️ {data['weather'][0]['description']}"
-    except Exception as e:
-        return f"Weather Error: {e}"
-
-
-def get_btc_price():
-    try:
-        data = requests.get(
-            "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=inr,usd"
-        ).json()
-
-        return f"₿ Bitcoin\n🇮🇳 ₹{data['bitcoin']['inr']}\n🇺🇸 ${data['bitcoin']['usd']}"
-    except Exception as e:
-        return f"BTC Error: {e}"
-    
-    def get_sports_news():
-        try:
-             url = f"https://newsapi.org/v2/top-headlines?country=in&category=sports&apiKey={NEWS_API_KEY}"
-
-             data = requests.get(url).json()
-
-             news = "🏏 Sports News\n\n"
-
-             for article in data["articles"][:5]:
-                  news += f"• {article['title']}\n"
-
-             return news
-
-        except Exception as e:
-             return f"Sports Error: {e}"
-
-
-# Purana code 107 se 150 tak hata dein aur ye naya code daalein
 def get_ai_response(user_text, sender):
     memory = load_memory()
-    
-    # User ka naam memory mein set/check karna
+
     if sender not in memory:
-        memory[sender] = {"name": "Dhiraj"}
-        save_memory(memory)
-    
-    name = memory[sender].get("name", "Dhiraj")
+        memory[sender] = {}
+
     text = user_text.lower()
 
-    # Name Memory Logic
-    if "mera naam" in text and "mera naam kya hai" not in text:
-        new_name = text.replace("mera naam", "").replace("hai", "").strip()
-        if len(new_name) > 1:
-            memory[sender]["name"] = new_name.title()
-            save_memory(memory)
-            return f"Thik hai, ab se main aapko {new_name.title()} bulaunga."
-    
-    if "mera naam kya hai" in text:
-        return f"Aapka naam {name} hai."
+    if sender not in conversation_history:
+        conversation_history[sender] = []
 
-    # Baaki code yahan rahega...
-    # (Abhi ke liye niche wahi purana code chhod dein jo line 151 se shuru ho raha hai)
+    conversation_history[sender].append({
+        "role": "user",
+        "content": user_text
+    })
+
+    # Name Memory
+    if "mera naam" in text and "mera naam kya hai" not in text:
+        try:
+            name = (
+                text.replace("mera naam", "")
+                .replace("hai", "")
+                .strip()
+            )
+
+            if len(name) > 1:
+                memory[sender]["name"] = name.title()
+                save_memory(memory)
+
+                return f"Thik hai, main yaad rakhunga ki aapka naam {name.title()} hai."
+        except:
+            pass
+
+    if "mera naam kya hai" in text:
+        if "name" in memory[sender]:
+            return f"Aapka naam {memory[sender]['name']} hai."
+        else:
+            return "Aapne abhi tak mujhe apna naam nahi bataya hai."
+
+    history = conversation_history[sender][-10:]
+
     # Fixed Replies
     if (
         "kisne banaya" in text
@@ -151,14 +101,14 @@ def get_ai_response(user_text, sender):
         "ethereum", "eth", "nifty", "sensex",
         "market", "price", "rates", "bhav"
     ]):
-        return get_btc_price()
+        return "📈 Live Market & Price feature under setup."
 
     # News
     if any(word in text for word in [
         "news", "khabar", "headlines",
         "latest news", "breaking news"
     ]):
-        return get_latest_news()
+        return "📰 Live News feature under setup."
 
     # Weather
     if any(word in text for word in [
@@ -166,29 +116,7 @@ def get_ai_response(user_text, sender):
         "temperature", "forecast",
         "barish", "garmi", "thand"
     ]):
-        return get_weather()
-    
-    if any(word in text for word in [
-    "dollar", "usd", "euro", "currency",
-    "rupee", "exchange"
-     
-    ]):
-        return get_exchange_rate()
-    
-    if any(word in text for word in [
-    "sports",
-    "sport",
-    "cricket",
-    "ipl",
-    "match",
-    "football"
-    ]):
-        return get_sports_news()
-
-    if any(word in text for word in [
-    "gold", "silver", "sona", "chandi"
-     ]):
-        return get_gold_price()
+        return "🌦️ Live Weather feature under setup."
 
     try:
         chat_completion = client.chat.completions.create(
@@ -228,7 +156,8 @@ Rules:
 
 10. Short aur useful jawab dene ki koshish karo.
 """
-               messages=[
+                },
+                *history,
                 {
                     "role": "user",
                     "content": user_text
@@ -307,27 +236,56 @@ def download_media(media_id):
     return response.content
 
 def analyze_image(media_id):
+
     try:
+
         image_url = get_media_url(media_id)
-        headers = {"Authorization": f"Bearer {os.environ.get('WHATSAPP_TOKEN')}"}
-        image_response = requests.get(image_url, headers=headers)
-        
-        if image_response.status_code == 200:
-            image_data = Image.open(BytesIO(image_response.content))
-            
-            # Ye raha aapka instruction jo ab code ka hissa hai
-            prompt = """Tum ek professional AI assistant ho. 
-            Rules: User ki bhasha mein jawab do, image ko analyze karke sawal ka seedha jawab do, 
-            short aur useful raho, aur agar kuch na pata ho toh guess mat karo."""
-            
-            result = gemini_model.generate_content([prompt, image_data])
-            return result.text
-        else:
-            return "Image download nahi ho payi."
-            
-    except Exception as e:
-        print(f"FULL IMAGE ERROR: {e}")
-        return "Photo analyze nahi ho payi."
+
+        headers = {
+            "Authorization": f"Bearer {WHATSAPP_TOKEN}"
+        }
+
+        image_response = requests.get(
+            image_url,
+            headers=headers
+        )
+
+        image = Image.open(
+            BytesIO(image_response.content)
+        )
+
+        result = gemini_model.generate_content([
+    """
+    Tum ek intelligent AI assistant ho.
+
+    User ne jo image bheji hai usko analyse karo aur user ke question ka direct jawab do.
+
+    Rules:
+
+    1. User jis language me sawal puche usi language me jawab do.
+    2. Sirf image ka description mat do, user ke question ko samjho aur uska answer do.
+    3. User image ke baare me kuch bhi puch sakta hai:
+       - Ye kya hai?
+       - Is photo me kya dikh raha hai?
+       - Ye photo kis software se bani hogi?
+       - Ye design kis type ka hai?
+       - Is photo ka purpose kya hai?
+       - Is image me kya samjhaya gaya hai?
+       - Is photo ki quality kaisi hai?
+       - Isme kya galat ya sahi hai?
+       - Is photo ka summary do.
+       - Is photo se kya information milti hai?
+       - Is photo ka analysis karo.
+
+    4. Agar image se exact information pata na chale to guess ko fact ki tarah mat batao.
+       "Mujhe exact pata nahi hai, lekin..." jaisa jawab do.
+
+    5. User ko short, clear aur useful answer do.
+
+    6. Agar user image ke baare me specific question puche to usi question par focus karo.
+    """,
+    image
+])
 
         return result.text
 
@@ -350,6 +308,7 @@ def analyze_pdf(pdf_file):
         result = gemini_model.generate_content(
     f"Is PDF document ko analyse karo aur user ke liye summary batao.\n\n{text[:10000]}"
 )
+
 
         return result.text
 
@@ -378,6 +337,7 @@ def verify():
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
+
     data = request.get_json()
     value = data["entry"][0]["changes"][0]["value"]
 
@@ -387,11 +347,18 @@ def webhook():
     message = value["messages"][0]
 
     try:
+
         message_id = message["id"]
+
         global processed_messages
 
+        try:
+            processed_messages
+        except:
+            processed_messages = set()
+
         if message_id in processed_messages:
-            return "ok", 200
+           return "ok", 200
 
         processed_messages.add(message_id)
 
@@ -399,37 +366,53 @@ def webhook():
         msg_type = message["type"]
 
         if msg_type == "text":
+
             user_text = message["text"]["body"]
+
             print("User:", user_text)
+
             ai_reply = get_ai_response(user_text, sender)
+
             print("AI:", ai_reply)
+
             send_whatsapp_message(sender, ai_reply)
 
         elif msg_type == "image":
+
             media_id = message["image"]["id"]
-            send_whatsapp_message(sender, "📷 Photo mil gayi. Analyse kar raha hu...")
+
+            send_whatsapp_message(
+                sender,
+                "📷 Photo mil gayi. Analyse kar raha hu..."
+            )
+
             result = analyze_image(media_id)
-            send_whatsapp_message(sender, result[:4000])
 
+            send_whatsapp_message(
+                sender,
+                result[:4000]
+            )
         elif msg_type == "document":
+
             media_id = message["document"]["id"]
-            filename = message["document"].get("filename", "").lower()
 
-            if filename.endswith(".pdf"):
-                send_whatsapp_message(sender, "📄 PDF mila. Analyse kar raha hu...")
-                pdf_file = BytesIO(download_media(media_id))
-                result = analyze_pdf(pdf_file)
+            send_whatsapp_message(
+                sender,
+                "📄 Document mil gaya. Analyse kar raha hu..."
+            )
+
+            pdf_file = BytesIO(download_media(media_id))
+            result = analyze_pdf(pdf_file)
+            send_whatsapp_message(
+                sender,
+                result[:4000]
+            )
+        
+        else:
+
+            print(f"Unsupported type: {msg_type}")
             
-            elif filename.endswith((".jpg", ".jpeg", ".png", ".webp")):
-                send_whatsapp_message(sender, f"🖼 Image file mili ({filename}). Analyse kar raha hu...")
-                result = analyze_image(media_id)
-            
-            else:
-                result = f"❌ Unsupported file: {filename}"
-
-            send_whatsapp_message(sender, result[:4000])
-
     except Exception as e:
         print("Webhook Error:", str(e))
 
-    return "ok", 200
+        return "ok", 200
