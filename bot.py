@@ -24,6 +24,9 @@ genai.configure(api_key=GEMINI_API_KEY)
 gemini_model = genai.GenerativeModel("gemini-2.5-flash")
 
 conversation_history = {}
+
+processed_messages = set()
+
 MEMORY_FILE = "memory.json"
 
 def load_memory():
@@ -64,8 +67,10 @@ def get_ai_response(user_text, sender):
             )
 
             if len(name) > 1:
+                print("MEMORY SAVE RUN")
                 memory[sender]["name"] = name.title()
                 save_memory(memory)
+                print("MEMORY SAVED:", memory)
 
                 return f"Thik hai, main yaad rakhunga ki aapka naam {name.title()} hai."
         except:
