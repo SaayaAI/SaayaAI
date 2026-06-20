@@ -228,8 +228,7 @@ Rules:
 
 10. Short aur useful jawab dene ki koshish karo.
 """
-                },
-                *history,
+               messages=[
                 {
                     "role": "user",
                     "content": user_text
