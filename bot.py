@@ -336,7 +336,6 @@ def verify():
 
 @app.route("/webhook", methods=["POST"])
 def webhook():
-
     data = request.get_json()
     value = data["entry"][0]["changes"][0]["value"]
 
@@ -346,18 +345,11 @@ def webhook():
     message = value["messages"][0]
 
     try:
-
         message_id = message["id"]
-
         global processed_messages
 
-        try:
-            processed_messages
-        except:
-            processed_messages = set()
-
         if message_id in processed_messages:
-           return "ok", 200
+            return "ok", 200
 
         processed_messages.add(message_id)
 
@@ -365,53 +357,37 @@ def webhook():
         msg_type = message["type"]
 
         if msg_type == "text":
-
             user_text = message["text"]["body"]
-
             print("User:", user_text)
-
             ai_reply = get_ai_response(user_text, sender)
-
             print("AI:", ai_reply)
-
             send_whatsapp_message(sender, ai_reply)
 
         elif msg_type == "image":
-
             media_id = message["image"]["id"]
-
-            send_whatsapp_message(
-                sender,
-                "📷 Photo mil gayi. Analyse kar raha hu..."
-            )
-
+            send_whatsapp_message(sender, "📷 Photo mil gayi. Analyse kar raha hu...")
             result = analyze_image(media_id)
+            send_whatsapp_message(sender, result[:4000])
 
-            send_whatsapp_message(
-                sender,
-                result[:4000]
-            )
         elif msg_type == "document":
-
             media_id = message["document"]["id"]
+            filename = message["document"].get("filename", "").lower()
 
-            send_whatsapp_message(
-                sender,
-                "📄 Document mil gaya. Analyse kar raha hu..."
-            )
-
-            pdf_file = BytesIO(download_media(media_id))
-            result = analyze_pdf(pdf_file)
-            send_whatsapp_message(
-                sender,
-                result[:4000]
-            )
-        
-        else:
-
-            print(f"Unsupported type: {msg_type}")
+            if filename.endswith(".pdf"):
+                send_whatsapp_message(sender, "📄 PDF mila. Analyse kar raha hu...")
+                pdf_file = BytesIO(download_media(media_id))
+                result = analyze_pdf(pdf_file)
             
+            elif filename.endswith((".jpg", ".jpeg", ".png", ".webp")):
+                send_whatsapp_message(sender, f"🖼 Image file mili ({filename}). Analyse kar raha hu...")
+                result = analyze_image(media_id)
+            
+            else:
+                result = f"❌ Unsupported file: {filename}"
+
+            send_whatsapp_message(sender, result[:4000])
+
     except Exception as e:
         print("Webhook Error:", str(e))
 
-        return "ok", 200
+    return "ok", 200
