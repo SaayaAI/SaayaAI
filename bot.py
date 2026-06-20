@@ -13,8 +13,15 @@ app = Flask(__name__)
 # Environment Variables
 WHATSAPP_TOKEN = os.environ.get("WHATSAPP_TOKEN")
 PHONE_NUMBER_ID = os.environ.get("PHONE_NUMBER_ID")
+
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+
+NEWS_API_KEY = os.environ.get("NEWS_API_KEY")
+OPENWEATHER_API_KEY = os.environ.get("OPENWEATHER_API_KEY")
+COINGECKO_API_KEY = os.environ.get("COINGECKO_API_KEY")
+EXCHANGE_API_KEY = os.environ.get("EXCHANGE_API_KEY")
+GOLD_API_KEY = os.environ.get("GOLD_API_KEY")
 
 VERIFY_TOKEN = "myloveaitoken2026"
 
@@ -39,6 +46,62 @@ def load_memory():
 def save_memory(memory):
     with open(MEMORY_FILE, "w") as f:
         json.dump(memory, f, indent=4)
+
+def get_gold_price():
+    return "🥇 Gold API Connected Successfully"
+
+def get_exchange_rate():
+    return "💱 Exchange API Connected Successfully"
+
+def get_latest_news():
+    try:
+        url = f"https://newsapi.org/v2/top-headlines?country=in&apiKey={NEWS_API_KEY}"
+        data = requests.get(url).json()
+
+        news = "📰 Top News:\n\n"
+        for article in data["articles"][:5]:
+            news += f"• {article['title']}\n"
+
+        return news
+    except Exception as e:
+        return f"News Error: {e}"
+
+
+def get_weather(city="Ahmedabad"):
+    try:
+        url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={OPENWEATHER_API_KEY}&units=metric"
+        data = requests.get(url).json()
+
+        return f"🌤️ {city}\n🌡️ {data['main']['temp']}°C\n☁️ {data['weather'][0]['description']}"
+    except Exception as e:
+        return f"Weather Error: {e}"
+
+
+def get_btc_price():
+    try:
+        data = requests.get(
+            "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=inr,usd"
+        ).json()
+
+        return f"₿ Bitcoin\n🇮🇳 ₹{data['bitcoin']['inr']}\n🇺🇸 ${data['bitcoin']['usd']}"
+    except Exception as e:
+        return f"BTC Error: {e}"
+    
+def get_sports_news():
+        try:
+             url = f"https://newsapi.org/v2/top-headlines?country=in&category=sports&apiKey={NEWS_API_KEY}"
+
+             data = requests.get(url).json()
+
+             news = "🏏 Sports News\n\n"
+
+             for article in data["articles"][:5]:
+                  news += f"• {article['title']}\n"
+
+             return news
+
+        except Exception as e:
+             return f"Sports Error: {e}"
 
 
 def get_ai_response(user_text, sender):
@@ -106,14 +169,14 @@ def get_ai_response(user_text, sender):
         "ethereum", "eth", "nifty", "sensex",
         "market", "price", "rates", "bhav"
     ]):
-        return "📈 Live Market & Price feature under setup."
+        return get_btc_price()
 
     # News
     if any(word in text for word in [
         "news", "khabar", "headlines",
         "latest news", "breaking news"
     ]):
-        return "📰 Live News feature under setup."
+        return get_latest_news()
 
     # Weather
     if any(word in text for word in [
@@ -121,7 +184,29 @@ def get_ai_response(user_text, sender):
         "temperature", "forecast",
         "barish", "garmi", "thand"
     ]):
-        return "🌦️ Live Weather feature under setup."
+        return get_weather()
+    
+    if any(word in text for word in [
+    "dollar", "usd", "euro", "currency",
+    "rupee", "exchange"
+     
+    ]):
+        return get_exchange_rate()
+    
+    if any(word in text for word in [
+    "sports",
+    "sport",
+    "cricket",
+    "ipl",
+    "match",
+    "football"
+    ]):
+        return get_sports_news()
+
+    if any(word in text for word in [
+    "gold", "silver", "sona", "chandi"
+     ]):
+        return get_gold_price()
 
     try:
         chat_completion = client.chat.completions.create(
