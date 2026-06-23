@@ -7,7 +7,7 @@ import { UserDetail } from "./routes/Users/UserDetail";
 import { PlanList } from "./routes/Subscriptions/PlanList";
 import { Broadcasts } from "./routes/Broadcasts/Broadcasts";
 import { Integrations } from "./routes/Integrations/Integrations";
-import { Logs } from "./routes/Logs/Logs";
+
 import { Greetings } from "./routes/Greetings/Greetings";
 import { Settings } from "./routes/Settings/Settings";
 
@@ -23,7 +23,7 @@ export default function App() {
         <Route path="subscriptions" element={<PlanList />} />
         <Route path="broadcasts" element={<Broadcasts />} />
         <Route path="integrations" element={<Integrations />} />
-        <Route path="logs" element={<Logs />} />
+       
         <Route path="greetings" element={<Greetings />} />
         <Route path="settings" element={<Settings />} />
       </Route>
