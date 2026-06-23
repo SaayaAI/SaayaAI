@@ -1,0 +1,246 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserStatus {
+  ACTIVE
+  BLOCKED
+  TRIAL
+}
+
+enum MessageDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  DOCUMENT
+  AUDIO
+  VIDEO
+  STICKER
+  LOCATION
+  UNKNOWN
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+  TRIAL
+}
+
+enum WebhookProcessStatus {
+  RECEIVED
+  PROCESSED
+  FAILED
+  SKIPPED
+}
+
+enum MemorySource {
+  EXPLICIT
+  INFERRED
+  ADMIN
+}
+
+enum MemoryCategory {
+  PROFILE
+  INTEREST
+  BUSINESS
+  FACT
+  PREFERENCE
+}
+
+model User {
+  id              String     @id @default(cuid())
+  phone           String     @unique
+  name            String?
+  city            String?
+  language        String     @default("hi")
+  timezone        String     @default("Asia/Kolkata")
+  status          UserStatus @default(ACTIVE)
+  lastEmotion     String?    @map("last_emotion")
+  lastActiveAt    DateTime?  @map("last_active_at")
+  emotionOptIn    Boolean    @default(true)  @map("emotion_opt_in")
+  greetingOptIn   Boolean    @default(true)  @map("greeting_opt_in")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt      @map("updated_at")
+
+  memories        UserMemory[]
+  preferences     UserPreference?
+  subscriptions   Subscription[]
+  messageLogs     MessageLog[]
+  mediaFiles      MediaFile[]
+  scheduledMsgs   ScheduledMessage[]
+
+  @@index([lastActiveAt])
+  @@map("users")
+}
+
+model UserMemory {
+  id         String          @id @default(cuid())
+  userId     String          @map("user_id")
+  key        String
+  value      String
+  category   MemoryCategory  @default(PROFILE)
+  source     MemorySource    @default(EXPLICIT)
+  confidence Float           @default(1.0)
+  createdAt  DateTime        @default(now()) @map("created_at")
+  updatedAt  DateTime        @updatedAt      @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, key])
+  @@index([userId, category])
+  @@map("user_memories")
+}
+
+model UserPreference {
+  id                  String  @id @default(cuid())
+  userId              String  @unique @map("user_id")
+  tone                String  @default("friendly")
+  businessMode        Boolean @default(false) @map("business_mode")
+  quietHoursStart     String? @map("quiet_hours_start")
+  quietHoursEnd       String? @map("quiet_hours_end")
+  greetingMorning     Boolean @default(true) @map("greeting_morning")
+  greetingAfternoon   Boolean @default(true) @map("greeting_afternoon")
+  greetingNight       Boolean @default(true) @map("greeting_night")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_preferences")
+}
+
+model Plan {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  price       Float    @default(0)
+  currency    String   @default("INR")
+  limits      Json     @default("{}")
+  features    Json     @default("[]")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt      @map("updated_at")
+
+  subscriptions Subscription[]
+
+  @@map("plans")
+}
+
+model Subscription {
+  id        String             @id @default(cuid())
+  userId    String             @map("user_id")
+  planId    String             @map("plan_id")
+  status    SubscriptionStatus @default(ACTIVE)
+  startsAt  DateTime           @default(now()) @map("starts_at")
+  endsAt    DateTime?          @map("ends_at")
+  createdAt DateTime           @default(now()) @map("created_at")
+  updatedAt DateTime           @updatedAt      @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan Plan @relation(fields: [planId], references: [id])
+
+  @@index([userId, status])
+  @@map("subscriptions")
+}
+
+model MessageLog {
+  id          String           @id @default(cuid())
+  userId      String           @map("user_id")
+  direction   MessageDirection
+  type        MessageType      @default(TEXT)
+  content     String?
+  contentHash String?          @map("content_hash")
+  intent      String?
+  emotion     String?
+  language    String?
+  tokensUsed  Int?             @map("tokens_used")
+  whatsappId  String?          @map("whatsapp_id")
+  createdAt   DateTime         @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([whatsappId])
+  @@map("message_logs")
+}
+
+model MediaFile {
+  id              String    @id @default(cuid())
+  userId          String    @map("user_id")
+  whatsappMediaId String    @map("whatsapp_media_id")
+  s3Key           String?   @map("s3_key")
+  mimeType        String?   @map("mime_type")
+  processedAt     DateTime? @map("processed_at")
+  expiresAt       DateTime? @map("expires_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("media_files")
+}
+
+model ScheduledMessage {
+  id          String    @id @default(cuid())
+  userId      String    @map("user_id")
+  type        String
+  payload     Json
+  scheduledAt DateTime  @map("scheduled_at")
+  sentAt      DateTime? @map("sent_at")
+  status      String    @default("pending")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([status, scheduledAt])
+  @@map("scheduled_messages")
+}
+
+model AdminUser {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String    @map("password_hash")
+  role         String    @default("admin")
+  lastLoginAt  DateTime? @map("last_login_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt      @map("updated_at")
+
+  auditLogs AuditLog[]
+
+  @@map("admin_users")
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  adminId   String   @map("admin_id")
+  action    String
+  entity    String
+  entityId  String?  @map("entity_id")
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  admin AdminUser @relation(fields: [adminId], references: [id])
+
+  @@index([adminId, createdAt])
+  @@map("audit_logs")
+}
+
+model WebhookEvent {
+  id         String               @id @default(cuid())
+  rawPayload Json                 @map("raw_payload")
+  status     WebhookProcessStatus @default(RECEIVED)
+  error      String?
+  receivedAt DateTime             @default(now()) @map("received_at")
+  processedAt DateTime?           @map("processed_at")
+
+  @@index([status, receivedAt])
+  @@map("webhook_events")
+}

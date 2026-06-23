@@ -1,0 +1,29 @@
+{
+  "name": "saaya-ai",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Saaya AI — WhatsApp intelligent assistant platform",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "start": "turbo run start",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "db:generate": "pnpm --filter @saaya/database generate",
+    "db:migrate": "pnpm --filter @saaya/database migrate:dev",
+    "db:push": "pnpm --filter @saaya/database push",
+    "db:seed": "pnpm --filter @saaya/database seed",
+    "docker:up": "docker compose -f infra/docker/docker-compose.yml up -d",
+    "docker:down": "docker compose -f infra/docker/docker-compose.yml down",
+    "docker:logs": "docker compose -f infra/docker/docker-compose.yml logs -f"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.15.0",
+  "devDependencies": {
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2"
+  }
+}

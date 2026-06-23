@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Saaya AI — Your intelligent WhatsApp assistant for conversations, documents, and more.">
+  <title>Saaya AI — Intelligent WhatsApp Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="header">
+    <nav class="nav container">
+      <a href="#" class="logo">
+        <span class="logo-icon">✦</span>
+        Saaya AI
+      </a>
+      <ul class="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+      <a href="#contact" class="btn btn-primary btn-sm">Get in Touch</a>
+      <button class="menu-toggle" aria-label="Toggle menu" aria-expanded="false">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-glow hero-glow-1"></div>
+      <div class="hero-glow hero-glow-2"></div>
+      <div class="container hero-content">
+        <div class="hero-badge">WhatsApp AI Assistant</div>
+        <h1>Your intelligent companion, right in your chat</h1>
+        <p class="hero-subtitle">
+          Saaya AI brings powerful AI to WhatsApp — answer questions, analyze photos,
+          summarize documents, and remember what matters to you.
+        </p>
+        <div class="hero-actions">
+          <a href="#contact" class="btn btn-primary">Start a Conversation</a>
+          <a href="#features" class="btn btn-secondary">Explore Features</a>
+        </div>
+        <div class="hero-stats">
+          <div class="stat">
+            <span class="stat-value">24/7</span>
+            <span class="stat-label">Always available</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value">Multi</span>
+            <span class="stat-label">Language support</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value">Smart</span>
+            <span class="stat-label">Context-aware</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="features">
+      <div class="container">
+        <div class="section-header">
+          <span class="section-tag">Features</span>
+          <h2>Everything you need, in one chat</h2>
+          <p>Saaya AI is built to help you work smarter, learn faster, and stay connected.</p>
+        </div>
+        <div class="features-grid">
+          <article class="feature-card">
+            <div class="feature-icon">💬</div>
+            <h3>Smart Conversations</h3>
+            <p>Get thoughtful, context-aware answers to your questions — from daily tasks to deep knowledge.</p>
+          </article>
+          <article class="feature-card">
+            <div class="feature-icon">📱</div>
+            <h3>WhatsApp Native</h3>
+            <p>No new apps to download. Chat with Saaya AI directly on WhatsApp, wherever you are.</p>
+          </article>
+          <article class="feature-card">
+            <div class="feature-icon">🖼️</div>
+            <h3>Photo Analysis</h3>
+            <p>Send images and get instant insights — understand content, extract details, and more.</p>
+          </article>
+          <article class="feature-card">
+            <div class="feature-icon">📄</div>
+            <h3>Document Summaries</h3>
+            <p>Share PDFs and documents. Saaya AI reads and summarizes them so you save time.</p>
+          </article>
+          <article class="feature-card">
+            <div class="feature-icon">🧠</div>
+            <h3>Personal Memory</h3>
+            <p>Saaya remembers your preferences and details, making every conversation feel personal.</p>
+          </article>
+          <article class="feature-card">
+            <div class="feature-icon">🌐</div>
+            <h3>Hindi & English</h3>
+            <p>Communicate naturally in Hindi, English, or a mix — Saaya understands you either way.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="contact">
+      <div class="container contact-wrapper">
+        <div class="contact-info">
+          <span class="section-tag">Contact</span>
+          <h2>Let's connect</h2>
+          <p>Have questions about Saaya AI or want to learn more? Send us a message and we'll get back to you.</p>
+          <ul class="contact-details">
+            <li>
+              <span class="detail-icon">✉</span>
+              <span>hello@saayaai.com</span>
+            </li>
+            <li>
+              <span class="detail-icon">💬</span>
+              <span>Available on WhatsApp</span>
+            </li>
+          </ul>
+        </div>
+        <form class="contact-form" id="contactForm" novalidate>
+          <div class="form-group">
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" placeholder="Your name" required>
+            <span class="error-message" data-for="name"></span>
+          </div>
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" placeholder="you@example.com" required>
+            <span class="error-message" data-for="email"></span>
+          </div>
+          <div class="form-group">
+            <label for="message">Message</label>
+            <textarea id="message" name="message" rows="5" placeholder="Tell us how we can help..." required></textarea>
+            <span class="error-message" data-for="message"></span>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full">Send Message</button>
+          <p class="form-success" id="formSuccess" hidden>
+            Thank you! Your message has been received. We'll be in touch soon.
+          </p>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-content">
+      <div class="footer-brand">
+        <a href="#" class="logo">
+          <span class="logo-icon">✦</span>
+          Saaya AI
+        </a>
+        <p>Intelligent AI, made simple.</p>
+      </div>
+      <p class="footer-copy">&copy; 2026 Saaya AI. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
