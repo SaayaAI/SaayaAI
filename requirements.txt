@@ -1,9 +1,0 @@
-flask
-requests
-gunicorn
-groq
-google-generativeai
-Pillow
-PyPDF2
-python-docx
-beautifulsoup4
